@@ -1,10 +1,6 @@
 `timescale 1ps / 1ps
 
-module top #(
-	parameter PL_LINK_CAP_MAX_LINK_WIDTH = 2,
-	parameter C_DATA_WIDTH               = 64,
-	parameter KEEP_WIDTH                 = C_DATA_WIDTH / 32
-)(
+module top (
 	input  wire FPGA_SYSCLK_P,
 	input  wire FPGA_SYSCLK_N,
 	inout  wire I2C_FPGA_SCL,
@@ -28,7 +24,7 @@ module top #(
 	output wire ETH0_TX_DISABLE
 );
 
-assign LED = 8'd0;
+assign LED = 8'b1010_1010;
 
 /*
  *  Core Clocking 
