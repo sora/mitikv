@@ -18,14 +18,14 @@ module top #(
 	output wire SFP_REC_CLK_N,
 	input  wire SFP_CLK_ALARM_B,
 
-	// Ethernet (ETH1)
-	input  wire ETH1_TX_P,
-	input  wire ETH1_TX_N,
-	output wire ETH1_RX_P,
-	output wire ETH1_RX_N,
-	input  wire ETH1_TX_FAULT,
-	input  wire ETH1_RX_LOS,
-	output wire ETH1_TX_DISABLE
+	// Ethernet (ETH0)
+	input  wire ETH0_TX_P,
+	input  wire ETH0_TX_N,
+	output wire ETH0_RX_P,
+	output wire ETH0_RX_N,
+	input  wire ETH0_TX_FAULT,
+	input  wire ETH0_RX_LOS,
+	output wire ETH0_TX_DISABLE
 );
 
 assign LED = 8'd0;
@@ -73,19 +73,19 @@ eth_top eth0_top (
 	.SFP_REC_CLK_P      (SFP_REC_CLK_P),
 	.SFP_REC_CLK_N      (SFP_REC_CLK_N),
 
-	.ETH1_TX_P          (ETH1_TX_P),
-	.ETH1_TX_N          (ETH1_TX_N),
-	.ETH1_RX_P          (ETH1_RX_P),
-	.ETH1_RX_N          (ETH1_RX_N),
+	.ETH0_TX_P          (ETH0_TX_P),
+	.ETH0_TX_N          (ETH0_TX_N),
+	.ETH0_RX_P          (ETH0_RX_P),
+	.ETH0_RX_N          (ETH0_RX_N),
 
 	.I2C_FPGA_SCL       (I2C_FPGA_SCL),
 	.I2C_FPGA_SDA       (I2C_FPGA_SDA),
 
 	.SFP_CLK_ALARM_B    (SFP_CLK_ALARM_B),
 
-	.ETH1_TX_FAULT      (ETH1_TX_FAULT ),
-	.ETH1_RX_LOS        (ETH1_RX_LOS   ),
-	.ETH1_TX_DISABLE    (ETH1_TX_DISABLE) 
+	.ETH0_TX_FAULT      (ETH0_TX_FAULT ),
+	.ETH0_RX_LOS        (ETH0_RX_LOS   ),
+	.ETH0_TX_DISABLE    (ETH0_TX_DISABLE) 
 );
 
 endmodule

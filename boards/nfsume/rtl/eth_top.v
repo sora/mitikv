@@ -11,19 +11,19 @@ module eth_top #(
 	output wire SFP_REC_CLK_P,
 	output wire SFP_REC_CLK_N,
 
-	input  wire ETH1_TX_P,
-	input  wire ETH1_TX_N,
-	output wire ETH1_RX_P,
-	output wire ETH1_RX_N,
+	input  wire ETH0_TX_P,
+	input  wire ETH0_TX_N,
+	output wire ETH0_RX_P,
+	output wire ETH0_RX_N,
 
 	inout  wire I2C_FPGA_SCL,
 	inout  wire I2C_FPGA_SDA,
 
 	input  wire SFP_CLK_ALARM_B,
 
-	input  wire ETH1_TX_FAULT,
-	input  wire ETH1_RX_LOS,
-	output wire ETH1_TX_DISABLE
+	input  wire ETH0_TX_FAULT,
+	input  wire ETH0_RX_LOS,
+	output wire ETH0_TX_DISABLE
 );
 
 /*
@@ -56,13 +56,13 @@ always @(posedge clk156)
  * Ethernet MAC and PCS/PMA Configuration
  */
 
-logic [535:0] pcs_pma_configuration_vector;
+wire [535:0] pcs_pma_configuration_vector;
 pcs_pma_conf pcs_pma_conf0(
 	.pcs_pma_configuration_vector(pcs_pma_configuration_vector)
 );
 
-logic [79:0] mac_tx_configuration_vector;
-logic [79:0] mac_rx_configuration_vector;
+wire [79:0] mac_tx_configuration_vector;
+wire [79:0] mac_rx_configuration_vector;
 eth_mac_conf eth_mac_conf0(
 	.mac_tx_configuration_vector(mac_tx_configuration_vector),
 	.mac_rx_configuration_vector(mac_rx_configuration_vector)
@@ -92,7 +92,7 @@ eth_encap eth_encap0 (
 
 /*
  * Ethernet MAC
- *//*
+ */
 wire txusrclk_out;
 wire txusrclk2_out;
 wire gttxreset_out;
@@ -116,17 +116,17 @@ axi_10g_ethernet_0 axi_10g_ethernet_0_ins (
 	.dclk                          (clk156),
 	.reset                         (eth_rst),
 	.rx_statistics_vector          (),
-	.rxn                           (ETH1_TX_N),
-	.rxp                           (ETH1_TX_P),
+	.rxn                           (ETH0_TX_N),
+	.rxp                           (ETH0_TX_P),
 	.s_axis_pause_tdata            (16'b0),
 	.s_axis_pause_tvalid           (1'b0),
-	.signal_detect                 (!ETH1_RX_LOS),
-	.tx_disable                    (ETH1_TX_DISABLE),
-	.tx_fault                      (ETH1_TX_FAULT),
+	.signal_detect                 (!ETH0_RX_LOS),
+	.tx_disable                    (ETH0_TX_DISABLE),
+	.tx_fault                      (ETH0_TX_FAULT),
 	.tx_ifg_delay                  (8'd8),
 	.tx_statistics_vector          (),
-	.txn                           (ETH1_RX_N),
-	.txp                           (ETH1_RX_P),
+	.txn                           (ETH0_RX_N),
+	.txp                           (ETH0_RX_P),
 
 	.rxrecclk_out                  (),
 	.resetdone_out                 (),
@@ -168,67 +168,67 @@ axi_10g_ethernet_0 axi_10g_ethernet_0_ins (
 	.qplllock_out                  (),                  
 	.qplloutclk_out                (),                
 	.qplloutrefclk_out             ()   
-);*/
-
-// Ethernet IP
-logic txusrclk_out;
-logic txusrclk2_out;
-logic gttxreset_out;
-logic gtrxreset_out;
-logic txuserrdy_out;
-logic areset_datapathclk_out;
-logic reset_counter_done_out;
-logic qplllock_out;
-logic qplloutclk_out;
-logic qplloutrefclk_out;
-logic [447:0] pcs_pma_status_vector;
-logic [1:0] mac_status_vector;
-logic [7:0] pcspma_status;
-logic rx_statistics_valid;
-logic tx_statistics_valid;
-axi_10g_ethernet_0 axi_10g_ethernet_0_ins (
-	.coreclk_out(clk156),
-	.refclk_n(SFP_CLK_N),
-	.refclk_p(SFP_CLK_P),
-	.dclk(clk156),
-	.reset(eth_rst),
-	.rx_statistics_vector(),
-	.rxn(ETH1_TX_N),
-	.rxp(ETH1_TX_P),
-	.s_axis_pause_tdata(16'b0),
-	.s_axis_pause_tvalid(1'b0),
-	.signal_detect(!ETH1_RX_LOS),
-	.tx_disable(ETH1_TX_DISABLE),
-	.tx_fault(ETH1_TX_FAULT),
-	.tx_ifg_delay(8'd8),
-	.tx_statistics_vector(),
-	.txn(ETH1_RX_N),
-	.txp(ETH1_RX_P),
-
-	.rxrecclk_out(),
-	.resetdone_out(),
-
-	// eth tx
-	.s_axis_tx_tready(m_axis_fifo_tready),
-	.s_axis_tx_tdata (m_axis_fifo_tdata),
-	.s_axis_tx_tkeep (m_axis_fifo_tkeep),
-	.s_axis_tx_tlast (m_axis_fifo_tlast),
-	.s_axis_tx_tvalid(m_axis_fifo_tvalid),
-	.s_axis_tx_tuser (m_axis_fifo_tuser),
-	
-	// eth rx
-	.m_axis_rx_tdata(),
-	.m_axis_rx_tkeep(),
-	.m_axis_rx_tlast(),
-	.m_axis_rx_tuser(),
-	.m_axis_rx_tvalid(),
-
-	.sim_speedup_control(1'b0),
-	.rx_axis_aresetn(1'b1),
-	.tx_axis_aresetn(1'b1),
-
-	.*
 );
+
+//// Ethernet IP
+//logic txusrclk_out;
+//logic txusrclk2_out;
+//logic gttxreset_out;
+//logic gtrxreset_out;
+//logic txuserrdy_out;
+//logic areset_datapathclk_out;
+//logic reset_counter_done_out;
+//logic qplllock_out;
+//logic qplloutclk_out;
+//logic qplloutrefclk_out;
+//logic [447:0] pcs_pma_status_vector;
+//logic [1:0] mac_status_vector;
+//logic [7:0] pcspma_status;
+//logic rx_statistics_valid;
+//logic tx_statistics_valid;
+//axi_10g_ethernet_0 axi_10g_ethernet_0_ins (
+//	.coreclk_out(clk156),
+//	.refclk_n(SFP_CLK_N),
+//	.refclk_p(SFP_CLK_P),
+//	.dclk(clk156),
+//	.reset(eth_rst),
+//	.rx_statistics_vector(),
+//	.rxn(ETH0_TX_N),
+//	.rxp(ETH0_TX_P),
+//	.s_axis_pause_tdata(16'b0),
+//	.s_axis_pause_tvalid(1'b0),
+//	.signal_detect(!ETH0_RX_LOS),
+//	.tx_disable(ETH0_TX_DISABLE),
+//	.tx_fault(ETH0_TX_FAULT),
+//	.tx_ifg_delay(8'd8),
+//	.tx_statistics_vector(),
+//	.txn(ETH0_RX_N),
+//	.txp(ETH0_RX_P),
+//
+//	.rxrecclk_out(),
+//	.resetdone_out(),
+//
+//	// eth tx
+//	.s_axis_tx_tready(m_axis_fifo_tready),
+//	.s_axis_tx_tdata (m_axis_fifo_tdata),
+//	.s_axis_tx_tkeep (m_axis_fifo_tkeep),
+//	.s_axis_tx_tlast (m_axis_fifo_tlast),
+//	.s_axis_tx_tvalid(m_axis_fifo_tvalid),
+//	.s_axis_tx_tuser (m_axis_fifo_tuser),
+//	
+//	// eth rx
+//	.m_axis_rx_tdata(),
+//	.m_axis_rx_tkeep(),
+//	.m_axis_rx_tlast(),
+//	.m_axis_rx_tuser(),
+//	.m_axis_rx_tvalid(),
+//
+//	.sim_speedup_control(1'b0),
+//	.rx_axis_aresetn(1'b1),
+//	.tx_axis_aresetn(1'b1),
+//
+//	.*
+//);
 
 endmodule
 

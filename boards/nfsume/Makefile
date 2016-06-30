@@ -13,7 +13,7 @@ RTL_SRC := rtl/SFP_CLK_INIT_rtl/i2c/trunk/rtl/verilog/i2c_master_bit_ctrl.v  \
            rtl/pcs_pma_conf.v                                            \
            rtl/eth_mac_conf.v                                            \
            rtl/eth_encap.v                                              \
-           rtl/eth_top.sv                                                \
+           rtl/eth_top.v                                                \
            rtl/top.v
 
 ## libraries
