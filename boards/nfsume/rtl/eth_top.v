@@ -5,6 +5,7 @@ module eth_top #(
 )(
 	input  wire clk100,
 	input  wire sys_rst,
+	output wire [7:0] debug,
 
 	input  wire SFP_CLK_P,
 	input  wire SFP_CLK_N,
@@ -43,13 +44,14 @@ sfp_refclk_init sfp_refclk_init0 (
 /*
  *  Ethernet Clock Domain : Reset
  */
-reg [13:0] cold_counter; 
-wire       eth_rst      = cold_counter != 14'h3fff;
+reg [13:0] cold_counter = 0; 
+reg        eth_rst;
 always @(posedge clk156) 
-	if (sys_rst) 
-		cold_counter <= 0;
-	else if (cold_counter != 14'h3fff) 
+	if (cold_counter != 14'h3fff) begin
 		cold_counter <= cold_counter + 14'd1;
+		eth_rst      <= 1'b1;
+	end else
+		eth_rst <= 1'b0;
 
 
 /*
@@ -158,17 +160,26 @@ axi_10g_ethernet_0 axi_10g_ethernet_0_ins (
 	.mac_status_vector             (mac_status_vector),            
 	.pcs_pma_configuration_vector  (pcs_pma_configuration_vector), 
 	.pcs_pma_status_vector         (pcs_pma_status_vector),        
-	.areset_datapathclk_out        (),        
-	.txusrclk_out                  (),                  
-	.txusrclk2_out                 (),                 
-	.gttxreset_out                 (),                 
-	.gtrxreset_out                 (),                 
-	.txuserrdy_out                 (),                 
-	.reset_counter_done_out        (),        
-	.qplllock_out                  (),                  
-	.qplloutclk_out                (),                
-	.qplloutrefclk_out             ()   
+	.areset_datapathclk_out        (areset_datapathclk_out),        
+	.txusrclk_out                  (txusrclk_out),                  
+	.txusrclk2_out                 (txusrclk2_out),                 
+	.gttxreset_out                 (gttxreset_out),                 
+	.gtrxreset_out                 (gtrxreset_out),                 
+	.txuserrdy_out                 (txuserrdy_out),                 
+	.reset_counter_done_out        (reset_counter_done_out),        
+	.qplllock_out                  (qplllock_out     ),                  
+	.qplloutclk_out                (qplloutclk_out   ),                
+	.qplloutrefclk_out             (qplloutrefclk_out)   
 );
+
+reg [31:0] led_cnt;
+always @ (posedge clk156)
+	if (eth_rst)
+		led_cnt <= 32'd0;
+	else 
+		led_cnt <= led_cnt + 32'd1;
+
+assign debug = led_cnt[31:24];
 
 endmodule
 

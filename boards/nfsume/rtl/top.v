@@ -24,7 +24,6 @@ module top (
 	output wire ETH0_TX_DISABLE
 );
 
-assign LED = 8'b1010_1010;
 
 /*
  *  Core Clocking 
@@ -51,11 +50,13 @@ BUFG buffer_clk100 (
  *  ***FPGA specified logic
  */
 reg [13:0] cold_counter = 14'd0;
-wire       sys_rst   = cold_counter != 14'h3fff;
+reg        sys_rst;
 always @(posedge clk200) 
-	if (cold_counter != 14'h3fff) 
+	if (cold_counter != 14'h3fff) begin
 		cold_counter <= cold_counter + 14'd1;
-
+		sys_rst <= 1'b1;
+	end else
+		sys_rst <= 1'b0;
 /*
  *  Ethernet Top Instance
  */
@@ -63,6 +64,7 @@ always @(posedge clk200)
 eth_top eth0_top (
 	.clk100             (clk100),
 	.sys_rst            (sys_rst),
+	.debug              (LED),
 
 	.SFP_CLK_P          (SFP_CLK_P),
 	.SFP_CLK_N          (SFP_CLK_N),
@@ -83,6 +85,18 @@ eth_top eth0_top (
 	.ETH0_RX_LOS        (ETH0_RX_LOS   ),
 	.ETH0_TX_DISABLE    (ETH0_TX_DISABLE) 
 );
+
+/*
+ * Debug : Clock
+ */
+//reg [31:0] led_cnt;
+//always @ (posedge clk100)
+//	if (sys_rst)
+//		led_cnt <= 32'd0;
+//	else 
+//		led_cnt <= led_cnt + 32'd1;
+//
+//assign LED = led_cnt[31:24];
 
 endmodule
 
