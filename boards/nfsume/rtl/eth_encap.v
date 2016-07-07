@@ -60,8 +60,8 @@ always @ (*) begin
 		TX_HDR: begin
 			if (m_axis_tready) begin
 				tx_count_next = tx_count + 1;
-				if (tx_count == 5) begin
-					tx_state_next = TX_DATA;
+				if (tx_count == 9) begin
+					tx_state_next = TX_WAIT;
 				end
 			end
 		end
@@ -82,52 +82,39 @@ always @ (*) begin
 		default: tx_state_next = TX_IDLE;
 	endcase
 end
-reg [7:0] m_axis_tkeep_reg;
+
 always @ (*) begin
 	if (tx_state == TX_HDR) begin
 		case (tx_count)
-			16'h0: m_axis_tkeep_reg = 8'b1111_1111;
-			16'h1: m_axis_tkeep_reg = 8'b1111_1111;
-			16'h2: m_axis_tkeep_reg = 8'b1111_1111;
-			16'h3: m_axis_tkeep_reg = 8'b1111_1111;
-			16'h4: m_axis_tkeep_reg = 8'b1111_1111;
-			16'h5: m_axis_tkeep_reg = 8'b1111_1111;
-			default: m_axis_tkeep_reg = 8'b0000_0000;
+			default: m_axis_tkeep = 8'b1111_1111;
 		endcase
 	end else if (tx_state == TX_DATA) begin
-		m_axis_tkeep_reg = 8'b1111_1111;//dout[73:66];
+		m_axis_tkeep = 8'b1111_1111;//dout[73:66];
 	end
 end
 
-reg [63:0] m_axis_tdata_reg;
 always @ (*) begin
-	m_axis_tdata_reg = 64'd0;
+	m_axis_tdata = 64'd0;
 	if (tx_state == TX_HDR) begin
 		case (tx_count)
-			16'h0: m_axis_tdata_reg = 64'h00000000_44332211;
-			16'h1: m_axis_tdata_reg = 64'h00000000_ccddeeff;
-			16'h2: m_axis_tdata_reg = 64'h00123456_44332211;
-			16'h3: m_axis_tdata_reg = 64'h00987654_44332211;
-			16'h4: m_axis_tdata_reg = 64'h00abcdef_44332211;
-			16'h5: m_axis_tdata_reg = 64'h11111111_44332211;
-			default: m_axis_tdata_reg = 64'h22222222_00000000;
+			0: m_axis_tdata = 64'h11_00_d1_91_5d_ba_e2_90;
+			1: m_axis_tdata = 64'h00_45_00_08_55_44_33_22;
+			2: m_axis_tdata = 64'h11_40_00_00_00_00_2e_00;
+			3: m_axis_tdata = 64'ha8_c0_01_64_a8_c0_62_31;
+			4: m_axis_tdata = 64'h1a_00_76_37_76_37_0b_64;
+			5: m_axis_tdata = 64'h3d_00_00_00_00_20_00_00;
+			6: m_axis_tdata = 64'hFF_FF_FF_FF_FF_FF_FF_FF;
+			7: m_axis_tdata = 64'h00_40_00_C0_00_00_00_00;
+			8: m_axis_tdata = 64'h01_08_00_00_00_00_70_00;
+			9: m_axis_tdata = 64'haa_aa_aa_aa_00_00_00_00;
+			default: m_axis_tdata = 64'h22222222_00000000;
 		endcase
 	end else if (tx_state == TX_DATA) begin
-		m_axis_tdata_reg = 64'hf3ffffff_ffffffff;
+		m_axis_tdata = 64'hf3ffffff_ffffffff;
 	end
 end
 
-always @ (posedge clk156) begin
-	if (eth_rst) begin
-		m_axis_tdata <= 64'h0;
-		m_axis_tkeep <=  8'h0;
-	end else begin
-		m_axis_tdata <= m_axis_tdata_reg;
-		m_axis_tkeep <= m_axis_tkeep_reg;
-	end
-end
-
-assign m_axis_tlast  = (tx_state == TX_DATA);
+assign m_axis_tlast  = (tx_state == TX_HDR && tx_count == 9);
 assign m_axis_tuser  = 1'b1;
 assign m_axis_tvalid = (tx_state == TX_HDR || tx_state == TX_DATA);
 
