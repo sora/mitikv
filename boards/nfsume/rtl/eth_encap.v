@@ -1,3 +1,5 @@
+`define DEBUG
+
 module eth_encap (
 	input  wire        clk156,
 	input  wire        eth_rst,
@@ -119,11 +121,18 @@ localparam IP_PROTO_UDP  = 8'h11,
            IP_PROTO_ICMP = 8'h01;
 localparam ICMP_PORT_UNREACH = 8'h03;
 localparam ICMP_DEST_UNREACH = 8'h03;
+localparam DNS_SERV_PORT__   = 16'd53;
+localparam DEBUG_SERV_PORT__ = 16'd12345;
+`ifdef DEBUG
+localparam DNS_SERV_PORT = DEBUG_SERV_PORT__;
+`else
+localparam DNS_SERV_PORT = DNS_SERV_PORT__;
+`endif /* DEBUG */
 
-
+/* general regs for parsering */
 reg  [9:0] rx_cnt;
 reg  [7:0] hit_cnt;
-
+/* regs for parsering */
 reg [15:0] rx_ftype;
 reg  [7:0] rx_ip_proto;
 reg [15:0] rx_dst_udp_port;
@@ -132,6 +141,7 @@ reg [ 7:0] filter_ip_proto;
 reg [31:0] filter_src_ip, filter_dst_ip 
 reg [15:0] filter_dst_udp, filter_len_udp, filter_qid_dns, filter_src_udp;
 reg [15:0] filter_parm_dns, filter_qcnt_dns, filter_acnt_dns, filter_auth_dns;
+
 
 wire filter_mode = rx_ftype     == ETH_FTYPE_IP      && 
                    rx_ip_proto  == IP_PROTO_ICMP     &&
@@ -217,8 +227,8 @@ always @ (posedge clk156) begin
 				default : ;
 			endcase
 			if (rx_ftype == ETH_FTYPE_IP && 
-					rx_ip_proto == IP_PROTO_UDP &&
-					rx_dst_udp_port == 16'd12345 &&
+					rx_ip_proto     == IP_PROTO_UDP  &&
+					rx_dst_udp_port == DNS_SERV_PORT &&
 					s_axis_tlast)
 				hit_cnt <= hit_cnt + 1;
 		end
