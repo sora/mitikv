@@ -117,6 +117,9 @@ reg [15:0] wait_cnt, wait_cnt_next;
 localparam ETH_FTYPE_IP  = 16'h0800;
 localparam IP_PROTO_UDP  = 8'h11,
            IP_PROTO_ICMP = 8'h01;
+localparam ICMP_PORT_UNREACH = 8'h03;
+localparam ICMP_DEST_UNREACH = 8'h03;
+
 
 reg  [9:0] rx_cnt;
 reg  [7:0] hit_cnt;
@@ -124,6 +127,16 @@ reg  [7:0] hit_cnt;
 reg [15:0] rx_ftype;
 reg  [7:0] rx_ip_proto;
 reg [15:0] rx_dst_udp_port;
+reg  [7:0] rx_icmp_type, rx_icmp_code;
+reg [ 7:0] filter_ip_proto;
+reg [31:0] filter_src_ip, filter_dst_ip 
+reg [15:0] filter_dst_udp, filter_len_udp, filter_qid_dns, filter_src_udp;
+reg [15:0] filter_parm_dns, filter_qcnt_dns, filter_acnt_dns, filter_auth_dns;
+
+wire filter_mode = rx_ftype     == ETH_FTYPE_IP      && 
+                   rx_ip_proto  == IP_PROTO_ICMP     &&
+                   rx_icmp_type == ICMP_DEST_UNREACH &&
+                   rx_icmp_code == ICMP_PORT_UNREACH;
 
 always @ (posedge clk156) begin
 	if (eth_rst) begin
@@ -132,6 +145,19 @@ always @ (posedge clk156) begin
 		rx_ip_proto     <= 0;
 		rx_dst_udp_port <= 0;
 		rx_ftype        <= 0;
+		rx_icmp_type    <= 0;
+		rx_icmp_code    <= 0;
+		filter_ip_proto <= 0;
+		filter_src_ip   <= 0; 
+		filter_dst_ip   <= 0; 
+		filter_dst_udp  <= 0; 
+		filter_len_udp  <= 0; 
+		filter_qid_dns  <= 0; 
+		filter_src_udp  <= 0;
+		filter_parm_dns <= 0; 
+		filter_qcnt_dns <= 0; 
+		filter_acnt_dns <= 0; 
+		filter_auth_dns <= 0;
 	end else begin
 		if (s_axis_tvalid) begin
 			if (s_axis_tlast)
@@ -143,15 +169,57 @@ always @ (posedge clk156) begin
 				1: rx_ftype <= {s_axis_tdata[39:32], s_axis_tdata[47:40]};
 				2: rx_ip_proto <= s_axis_tdata[63:56];
 				3: ;
-				4: if (rx_ftype == ETH_FTYPE_IP && rx_ip_proto == IP_PROTO_UDP)
-					rx_dst_udp_port <= {s_axis_tdata[39:32], s_axis_tdata[47:40]};
-				default : begin
-					;
+				4: begin
+					if (rx_ftype == ETH_FTYPE_IP && rx_ip_proto == IP_PROTO_UDP)
+						rx_dst_udp_port <= {s_axis_tdata[39:32], s_axis_tdata[47:40]};
+					if (rx_ftype == ETH_FTYPE_IP && rx_ip_proto == IP_PROTO_ICMP) begin
+						rx_icmp_type <= s_axis_tdata[23:16];
+						rx_icmp_code <= s_axis_tdata[31:24];
+					end
+				5: if (filter_mode) begin
+					filter_iph_len <= s_axis_tdata[23:16];
+					filter_ipd_len <= {s_axis_tdata[39:32],
+                                       s_axis_tdata[47:40]};
 				end
+				6: if (filter_mode) begin
+					filter_ip_proto      <= s_axis_tdata[32:23];
+					filter_src_ip[31:16] <= {s_axis_tdata[55:48],
+					                         s_axis_tdata[63:56]};
+				end
+				7: if (filter_mode) begin
+					filter_src_ip[15:0] <= {s_axis_tdata[ 7: 0],
+					                        s_axis_tdata[15: 8]};
+					filter_dst_ip       <= {s_axis_tdata[23:16],
+					                        s_axis_tdata[31:24],
+					                        s_axis_tdata[39:32],
+					                        s_axis_tdata[47:40]};
+					filter_src_udp      <= {s_axis_tdata[55:48],
+					                        s_axis_tdata[63:56]};
+				end
+				8: if (filter_mode) begin
+					filter_dst_udp      <= {s_axis_tdata[ 7: 0],
+					                        s_axis_tdata[15: 8]};
+					filter_len_udp      <= {s_axis_tdata[23:16],
+					                        s_axis_tdata[31:24]};
+					filter_qid_dns      <= {s_axis_tdata[55:48],
+					                        s_axis_tdata[63:56]};
+				end
+				9: if (filter_mode) begin
+					filter_parm_dns      <= {s_axis_tdata[ 7: 0],
+					                         s_axis_tdata[15: 8]};
+					filter_qcnt_dns      <= {s_axis_tdata[23:16],
+					                         s_axis_tdata[31:24]};
+					filter_acnt_dns      <= {s_axis_tdata[39:32],
+					                         s_axis_tdata[47:40]};
+					filter_auth_dns      <= {s_axis_tdata[55:48],
+					                         s_axis_tdata[63:56]};
+				end
+				default : ;
 			endcase
 			if (rx_ftype == ETH_FTYPE_IP && 
 					rx_ip_proto == IP_PROTO_UDP &&
-					rx_dst_udp_port == 16'd12345)
+					rx_dst_udp_port == 16'd12345 &&
+					s_axis_tlast)
 				hit_cnt <= hit_cnt + 1;
 		end
 	end
