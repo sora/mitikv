@@ -138,11 +138,11 @@ reg  [7:0] rx_ip_proto;
 reg [15:0] rx_dst_udp_port;
 reg  [7:0] rx_icmp_type, rx_icmp_code;
 reg [ 7:0] filter_ip_proto;
-reg [31:0] filter_src_ip, filter_dst_ip 
+reg [31:0] filter_src_ip, filter_dst_ip;
 reg [15:0] filter_dst_udp, filter_len_udp, filter_qid_dns, filter_src_udp;
 reg [15:0] filter_parm_dns, filter_qcnt_dns, filter_acnt_dns, filter_auth_dns;
-
-
+reg  [7:0] filter_iph_len;
+reg [15:0] filter_ipd_len;
 wire filter_mode = rx_ftype     == ETH_FTYPE_IP      && 
                    rx_ip_proto  == IP_PROTO_ICMP     &&
                    rx_icmp_type == ICMP_DEST_UNREACH &&
@@ -186,6 +186,7 @@ always @ (posedge clk156) begin
 						rx_icmp_type <= s_axis_tdata[23:16];
 						rx_icmp_code <= s_axis_tdata[31:24];
 					end
+				end
 				5: if (filter_mode) begin
 					filter_iph_len <= s_axis_tdata[23:16];
 					filter_ipd_len <= {s_axis_tdata[39:32],
@@ -261,7 +262,7 @@ axis_data_fifo_0 u_axis_data_fifo (
   .axis_wr_data_count  (),  // output wire [31 : 0] axis_wr_data_count
   .axis_rd_data_count  ()  // output wire [31 : 0] axis_rd_data_count
 );
-//`ifdef SIMULATION_ILA
+`ifdef SIMULATION_ILA
 /*
  *  ILA core instance
  */
@@ -293,7 +294,7 @@ ila_1 inst_ila (
 	}) // input wire [75:0] probe0
 );
 
-//`endif /* SIMULATION_ILA */
+`endif /* SIMULATION_ILA */
 
 endmodule
 
