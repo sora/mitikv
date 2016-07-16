@@ -1,5 +1,7 @@
 `timescale 1ps / 1ps
 
+`define SIMULATION_ILA
+
 module top (
 	input  wire FPGA_SYSCLK_P,
 	input  wire FPGA_SYSCLK_N,
