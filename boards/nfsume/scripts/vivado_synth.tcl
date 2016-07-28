@@ -24,8 +24,6 @@ update_ip_catalog -rebuild
 puts "INFO: Import XDC Sources ..."
 read_xdc ${XDC_SRC}
 
-update_ip_catalog -rebuild
-
 puts "INFO: Import RTL Sources ..."
 foreach file $RTL_SRC {
 	# verilog

@@ -29,6 +29,8 @@ RTL_SRC := rtl/SFP_CLK_INIT_rtl/i2c/trunk/rtl/verilog/i2c_master_bit_ctrl.v  \
 #VERILATOR_SRC := test/app_tb.cpp
 
 IP_SRC := ip_catalog/axi_10g_ethernet_0/axi_10g_ethernet_0.xci    \
+          ip_catalog/ila_1.xci    \
+          ip_catalog/axis_data_fifo_0/axis_data_fifo_0.xci   \
           ip_catalog/si5324_regs_rom/si5324_regs_rom.xcix
 
 XDC_SRC := constraints/sume.xdc      \
@@ -42,8 +44,8 @@ TCL_SRC := scripts/vivado_createprj.tcl  \
 
 all: bitstream
 
-prj: dnskv.xpr
-dnskv.xpr: $(TCL_SRC) $(RTL_SRC) $(IP_SRC) $(XDC_SRC)
+prj: $(proj).xpr
+$(proj).xpr: $(TCL_SRC) $(RTL_SRC) $(IP_SRC) $(XDC_SRC)
 	test -e $(outdir) || mkdir $(outdir)
 	vivado -mode batch -source scripts/vivado_createprj.tcl -log $(outdir)/createprj_log.txt -nojournal -tclargs "$(RTL_SRC)" "$(IP_SRC)" "$(XDC_SRC)"
 
@@ -67,6 +69,8 @@ $(outdir)/$(proj).bit: $(outdir)/post_route.dcp
 program: $(outdir)/$(proj).bit
 	vivado -mode batch -source scripts/vivado_program.tcl -log $(outdir)/program_log.txt -nojournal
 
+load: $(outdir)/$(proj).bit
+	./script/xprog.sh load $(outdir)/$(proj).bit
 
 #sim: sim-verilator
 #
@@ -87,7 +91,7 @@ sim-clean:
 	rm -f wave.vcd
 	rm -rf obj_dir
 
-.PHONY: clean
+.PHONY: clean load
 clean: sim-clean synth-clean
 
 .PHONY: distclean
