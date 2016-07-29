@@ -1,10 +1,12 @@
 module db_cont #(
-	parameter HASH_SIZE   =  32,
-	parameter KEY_SIZE    = 112, // 80bit + 32bit
-	parameter VAL_SIZE    =  32,
-	parameter FLAG_SIZE   =   4,
-	parameter RAM_ADDR    =  22,
-	parameter RAM_DWIDTH  =  32
+	parameter HASH_SIZE   = 32,
+	parameter KEY_SIZE    = 96, // 80bit + 32bit
+	parameter VAL_SIZE    = 32,
+	parameter FLAG_SIZE   =  4,
+	parameter RAM_ADDR    = 22,
+	parameter RAM_DWIDTH  = 32,
+	parameter RAM_SIZE    = 1024
+	
 
 )(
 	/* System Interface */
@@ -18,8 +20,8 @@ module db_cont #(
 	input  wire [KEY_SIZE-1:0]   in_key       ,
 	input  wire [VAL_SIZE-1:0]   in_value     , 
 
-	output wire                  out_valid    ,
-	output wire [3:0]            out_flag     ,
+	output reg                   out_valid    ,
+	output reg  [3:0]            out_flag     ,
 	output wire [VAL_SIZE-1:0]   out_value    ,
 	/* DRAM Interface */
 	output wire                  dram_wr_en   ,
@@ -29,132 +31,133 @@ module db_cont #(
 	input  wire [RAM_DWIDTH-1:0] dram_rd_dout ,
 	input  wire                  dram_rd_valid
 );
+
+/*
+ * Free Running Counter
+ *
+ */
+wire div_clk;
+reg [23:0] div_cnt;
+always @ (posedge clk)
+	if (rst)
+		div_cnt <= 0;
+	else
+		div_cnt <= div_cnt + 1;
+
+reg [15:0] sys_cnt = 0;
+always @ (posedge div_clk)
+	sys_cnt <= sys_cnt + 1;
+
+`ifdef SIMULATION
+assign div_clk = div_cnt[3];
+`else
+BUFG u_bufg_sys_clk (.I(div_cnt[23]), .O(div_clk));
+`endif  /* SIMULATION */
+
 /*
  * Flag field
  *    flag  [0] : RD / WR
- *    flag[2:1] : state
- *    flag  [3] : 
+ *    flag[3:1] : state
+ *                3'b000 : IDLE
+ *                3'b001 : SUSPECTION
+ *                3'b010 : ARREST
+ *                3'b011 : FILTERED
  */
-
-localparam POS_RW_FLAG = FLAG_SIZE+HASH_SIZE+KEY_SIZE+VAL_SIZE-4;
-
-wire [4+HASH_SIZE+KEY_SIZE+VAL_SIZE-1:0] fifo_inj0_din, fifo_inj0_dout;
-wire fifo_inj0_empty, fifo_inj0_full;
-wire fifo_inj1_empty, fifo_inj1_full;
-
-wire fifo_inj0_rd_en, fifo_inj1_rd_en;
-
-afifo #(
-	.DWIDTH    (FLAG_SIZE+HASH_SIZE+KEY_SIZE+VAL_SIZE),
-	.DEPTH     (4)
-) u_fifo_inject0 (
-	.Data      (fifo_inj0_din),
-	.WrClock   (clk),
-	.RdClock   (clk),
-	.WrEn      (in_valid),
-	.RdEn      (fifo_inj0_rd_en),
-	.Reset     (rst),
-	.Q         (fifo_inj0_dout),
-	.Empty     (fifo_inj0_empty),
-	.Full      (fifo_inj0_full) 
-);
-
-afifo #(
-	.DWIDTH    (FLAG_SIZE+HASH_SIZE+KEY_SIZE+VAL_SIZE),
-	.DEPTH     (4)
-) u_fifo_inject1 (
-	.Data      (fifo_inj1_din),
-	.WrClock   (clk),
-	.RdClock   (clk),
-	.WrEn      (),
-	.RdEn      (fifo_inj1_rd_en),
-	.Reset     (rst),
-	.Q         (fifo_inj1_dout),
-	.Empty     (fifo_inj1_empty),
-	.Full      (fifo_inj1_full) 
-);
-
-/*
- * Arb
- */
-reg  [1:0] arb_c;
-wire [1:0] sel_fifo = (!fifo_inj0_empty && !fifo_inj1_empty) ? arb_c :
-                      (!fifo_inj0_empty)                     ? 2'b01 :
-                      (!fifo_inj1_empty)                     ? 2'b10 : 0;
-     
-assign fifo_inj0_rd_en = (sel_fifo == 2'b01);
-assign fifo_inj1_rd_en = (sel_fifo == 2'b10);
-
-wire wr_din = (fifo_inj0_rd_en) ?  : // Key Lookup
-              (fifo_inj1_rd_en) ?  : 0; // Value Lookup
-wire addr   = (fifo_inj0_rd_en) ?  :
-              (fifo_inj1_rd_en) ?  : 0; // Value Lookup
-              
-
-assign dram_wr_en = (fifo_inj0_rd_en) ? fifo_inj0_dout[POS_RW_FLAG] :
-                    (fifo_inj1_rd_en) ? fifo_inj1_dout[POS_RW_FLAG] : 0; 
-assign dram_din   = (fifo_inj0_rd_en) ?
-                    (fifo_inj1_rd_en) ? : 0;
-assign dram_addr  = (fifo_inj0_rd_en) ?
-                    (fifo_inj1_rd_en) ? : 0;
-always @ (posedge clk)
-	if (rst) begin
-		arb_c <= 2'b01;
-	end else begin
-		arb_c <= ~arb_c;
-	end
 
 
 /*
  * Hash Table Access Logic
  */
 // HashTable 0x0000_0000--0x0000_ffff
-wire [HASH_SIZE-1:0] hash = ( in_hash & 32'hFFFF ) * 14;
+wire [HASH_SIZE-1:0] hash = ( in_hash & 32'h3FF );
 
 localparam IDLE   = 0,
-           HT_ACC = 1,
-           HT_AAA = 2;
+           CHECK  = 1,
+           MISS   = 2,
+           UPDATE = 3;
+integer i;
+reg [1:0]          state;
+reg [KEY_SIZE-1:0] fetched_key;
+reg [VAL_SIZE-1:0] fetched_val, get_val;
+reg                judge;
+/* Hash Table & Data Store */
+reg [KEY_SIZE-1:0] KEY [RAM_SIZE-1:0];
+reg [KEY_SIZE-1:0] VAL [RAM_SIZE-1:0];
 
-reg state [1:0];
-
+wire [1:0] fetched_flag = fetched_val[23:21];
 
 always @ (posedge clk)
 	if (rst) begin
-		state <= IDLE;
+		judge       <=    0;
+		state       <= IDLE;
+		fetched_key <=    0;
+		fetched_val <=    0;
+		out_valid   <=    0;
+		out_flag    <=    0;
+
+		for (i = 0; i < RAM_SIZE; i = i + 1) begin
+			KEY[i] <= 0;
+			VAL[i] <= 0;
+		end
 	end else begin
 		case (state)
-			IDLE    : ;
-			default : ;
+			IDLE  : begin
+				judge <= 0;
+				out_valid <= 0;
+				out_flag  <= 0;
+				if (in_valid) begin
+					fetched_key <= KEY[hash];
+					fetched_val <= VAL[hash];
+					if (in_key == KEY[hash]) 
+						state <= CHECK;
+					else
+						state <= MISS;
+				end
+			end
+			CHECK : if (fetched_val[15:0] > sys_cnt[15:0]) begin
+				// Okay?
+				judge <= 0;
+				if (in_op[0] == 1)
+					state <= UPDATE;
+				else
+					state <= IDLE;
+			end else begin
+				if (in_op[0] == 1) begin
+					state <= UPDATE;
+					case (in_op[2:1])
+						2'b00: state <= IDLE;
+						2'b01: begin
+							if (fetched_flag[1] == 0)
+								state <= UPDATE;
+							else
+								state <= IDLE;
+						end
+						2'b10: begin
+							if (fetched_flag == 2'b01)
+								state <= UPDATE;
+							else
+								state <= IDLE;
+						end
+						2'b11: state <= IDLE;
+					endcase
+				end else begin // GET request
+					state     <= IDLE;
+					judge     <= 1;
+				end
+				out_valid <= 1;
+				out_flag  <= fetched_val[23:20];
+			end
+			MISS  : if (in_op[0] == 1)
+				state <= UPDATE;
+			else // in_op == GET
+				state <= IDLE;
+			UPDATE: begin
+				KEY[hash] <= in_key;
+				VAL[hash] <= {in_op, 4'd0, sys_cnt[15:0]};
+				state <= IDLE;
+			end
+			default : state <= IDLE;
 		endcase
 	end
-
-/*
- * Data Store Access Logic
- */
-
-always @ (posedge clk)
-	if (rst) begin
-
-	end else begin
-		if (flag == 4'h1) begin
-
-	end
-
-
-
-afifo #(
-	.DWIDTH    (FLAG_SIZE+HASH_SIZE+KEY_SIZE+VAL_SIZE),
-	.DEPTH     (16)
-) u_fifo_parse (
-	.Data      (),
-	.WrClock   (clk),
-	.RdClock   (clk),
-	.WrEn      (),
-	.RdEn      (rd_en),
-	.Reset     (rst),
-	.Q         (fifo__dout),
-	.Empty     (fifo_empty),
-	.Full      (fifo_full) 
-);
 
 endmodule
