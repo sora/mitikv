@@ -181,7 +181,7 @@ wire suspect_mode = rx_ftype     == ETH_FTYPE_IP      &&
                     rx_ip_proto  == IP_PROTO_UDP      &&
                     rx_src_uport == DNS_SERV_PORT;
 reg  filtered;
-wire filter_block = filtered || (in_valid && in_flag[2:1] == 2'b10);
+wire filter_block = filtered || (out_valid && out_flag[2:1] == 2'b10);
 
 always @ (posedge clk156) begin
 	if (eth_rst) begin
@@ -243,7 +243,7 @@ always @ (posedge clk156) begin
 		end
 
 		/* DB reply */
-		if (in_valid && in_flag[2:1] == 2'b10)
+		if (out_valid && out_flag[2:1] == 2'b10)
 			filtered <= 1;
 
 		/* Packet Parser */
@@ -402,11 +402,11 @@ axis_data_fifo_0 u_axis_data_fifo (
   .s_axis_aresetn      (!eth_rst),     // input wire s_axis_aresetn
   .s_axis_aclk         (clk156),       // input wire s_axis_aclk
 
-  .s_axis_tvalid       (s_axis_tvalid),// input wire s_axis_tvalid
+  .s_axis_tvalid       (p_axis_tvalid),// input wire s_axis_tvalid
   .s_axis_tready       (),             // te s_axis_tready
-  .s_axis_tdata        (s_axis_tdata), // input wire [63 : 0] s_axis_tdata
-  .s_axis_tkeep        (s_axis_tkeep), // input wire [7 : 0] s_axis_tkeep
-  .s_axis_tlast        (s_axis_tlast), // input wire s_axis_tlast
+  .s_axis_tdata        (p_axis_tdata), // input wire [63 : 0] s_axis_tdata
+  .s_axis_tkeep        (p_axis_tkeep), // input wire [7 : 0] s_axis_tkeep
+  .s_axis_tlast        (p_axis_tlast), // input wire s_axis_tlast
   .s_axis_tuser        (1'b0), // input wire [0 : 0] s_axis_tuser
 
   .m_axis_tvalid       (m_axis_tvalid),// output wire m_axis_tvalid
