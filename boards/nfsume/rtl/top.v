@@ -108,7 +108,7 @@ db_top (
 	.in_flag          (in_flag  ),
 	.in_vaild         (in_vaild ),
 	.out_valid        (out_valid),
-	.out_flag         (out_flag ),
+	.out_flag         (out_flag )
 
 	/* DRAM interace */ 
 	//input wire    dram_wr_strb,
