@@ -196,7 +196,6 @@ always @ (posedge clk156) begin
 		filter_acnt_dns <= 0; 
 		filter_auth_dns <= 0;
 		suspect_qid_dns  <= 0; 
-		suspect_src_udp  <= 0;
 		suspect_parm_dns <= 0; 
 		suspect_qcnt_dns <= 0; 
 		suspect_acnt_dns <= 0; 
@@ -230,7 +229,6 @@ always @ (posedge clk156) begin
 					filter_acnt_dns <= 0; 
 					filter_auth_dns <= 0;
 					suspect_qid_dns  <= 0; 
-					suspect_src_udp  <= 0;
 					suspect_parm_dns <= 0; 
 					suspect_qcnt_dns <= 0; 
 					suspect_acnt_dns <= 0; 
@@ -329,10 +327,10 @@ always @ (posedge clk156) begin
 	end
 end
 
-wire [1:0] status = dp_op[2:1];
+wire [1:0] status = db_op[2:1];
 assign in_flag = db_op;
 assign in_valid = (suspect_mode && rx_cnt == 10'd7) || 
-                  (filter_mode  && rx_cnt == 10'd11)
+                  (filter_mode  && rx_cnt == 10'd11);
 
 assign in_key = (status == STATUS_SUSPECT) ? {rx_src_ip, rx_dst_ip, 
                                               rx_dst_uport , 16'd0}  :

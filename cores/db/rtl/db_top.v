@@ -6,11 +6,11 @@ module db_top (
 	output wire [3:0]          in_flag,
 	output wire                in_vaild,
 	input  wire                out_valid,
-	input  wire [3:0]          out_flag,
+	input  wire [3:0]          out_fla,
 
 	/* DRAM interace */ 
-	input wire    dram_wr_strb,
-	input wire    dram_wr_data, 
+	//input wire    dram_wr_strb,
+	//input wire    dram_wr_data, 
 );
 
 
