@@ -7,7 +7,7 @@ module db_top #(
 	/* Network Interface */
 	input  wire [KEY_SIZE-1:0] in_key,
 	input  wire [3:0]          in_flag,
-	input  wire                in_vaild,
+	input  wire                in_valid,
 	output wire                out_valid,
 	output wire [3:0]          out_flag
 
