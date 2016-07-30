@@ -31,9 +31,9 @@ RTL_SRC := rtl/SFP_CLK_INIT_rtl/i2c/trunk/rtl/verilog/i2c_master_bit_ctrl.v  \
 
 #VERILATOR_SRC := test/app_tb.cpp
 
-IP_SRC := ip_catalog/axi_10g_ethernet_0/axi_10g_ethernet_0.xci    \
-          ip_catalog/axis_data_fifo_0/axis_data_fifo_0.xci   \
-          ip_catalog/ila_1.xci    \
+IP_SRC := ip_catalog/axi_10g_ethernet_0/axi_10g_ethernet_0.xci  \
+          ip_catalog/axis_data_fifo_0/axis_data_fifo_0.xci      \
+          ip_catalog/ila_0/ila_0.xci                            \
           ip_catalog/si5324_regs_rom/si5324_regs_rom.xcix
 
 XDC_SRC := constraints/sume.xdc      \

@@ -439,15 +439,15 @@ axis_data_fifo_0 u_axis_data_fifo (
 //	tuser_ila <= s_axis_tuser;
 //end
 
-ila_1 inst_ila (
+ila_0 inst_ila (
 	.clk     (clk156), // input wire clk
 	.probe0  ({
-		in_key    ,
-		in_valid  ,
-		rx_cnt    ,
-		filter_mode,
-		suspect_mode,
-		db_op
+		in_key    , //96
+		in_valid  , //1
+		rx_cnt    , // 10
+		filter_mode, // 1
+		suspect_mode,// 1
+		db_op // 4
 	}) // input wire [75:0] probe0
 );
 
