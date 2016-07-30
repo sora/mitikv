@@ -10,7 +10,7 @@ module eth_encap #(
 
 	output wire [KEY_SIZE-1:0] in_key,
 	output wire [3:0]          in_flag,
-	output wire                in_vaild,
+	output wire                in_valid,
 	input  wire                out_valid,
 	input  wire [3:0]          out_flag,
 
@@ -385,8 +385,8 @@ end
 
 wire [1:0] status = db_op[2:1];
 assign in_flag = db_op;
-wire in_valid = (suspect_mode && rx_cnt == 10'd7) || 
-                (filter_mode  && rx_cnt == 10'd11);
+assign in_valid = (suspect_mode && rx_cnt == 10'd7) || 
+                  (filter_mode  && rx_cnt == 10'd11);
 
 assign in_key = (status == STATUS_SUSPECT) ? {rx_src_ip, rx_dst_ip, 
                                               rx_dst_uport , 16'd0}  :
