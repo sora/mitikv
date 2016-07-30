@@ -319,7 +319,7 @@ always @ (posedge clk156) begin
 					                     s_axis_tdata[63:56]};
 				end                          
 				6: if (filter_mode) begin
-					filter_ip_proto      <= s_axis_tdata[32:23];
+					filter_ip_proto      <= s_axis_tdata[31:24];
 					filter_src_ip[31:16] <= {s_axis_tdata[55:48],
 					                         s_axis_tdata[63:56]};
 				end else if (suspect_mode) begin
