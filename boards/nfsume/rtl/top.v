@@ -76,7 +76,7 @@ eth_top eth0_top (
 	.db_clk           (db_clk),
 	.in_key           (in_key   ),
 	.in_flag          (in_flag  ),
-	.in_vaild         (in_vaild ),
+	.in_valid         (in_valid ),
 	.out_valid        (out_valid),
 	.out_flag         (out_flag ),
 
