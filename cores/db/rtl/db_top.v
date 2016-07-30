@@ -2,14 +2,14 @@ module db_top #(
 	parameter KEY_SIZE = 96,
 	parameter VAL_SIZE = 32
 )(
-	input wire    clk,
-	input wire    rst, 
+	input  wire                clk,
+	input  wire                rst, 
 	/* Network Interface */
-	output wire [KEY_SIZE-1:0] in_key,
-	output wire [3:0]          in_flag,
-	output wire                in_vaild,
-	input  wire                out_valid,
-	input  wire [3:0]          out_flag
+	input  wire [KEY_SIZE-1:0] in_key,
+	input  wire [3:0]          in_flag,
+	input  wire                in_vaild,
+	output wire                out_valid,
+	output wire [3:0]          out_flag
 
 	/* DRAM interace */ 
 	//input wire    dram_wr_strb,
@@ -62,7 +62,7 @@ db_cont #(
 	.RAM_ADDR     (22),
 	.RAM_DWIDTH   (32),
 	.RAM_SIZE     (1024)
-)(
+) u_db_cont (
 	/* System Interface */
 	.clk          (clk),
 	.rst          (rst),
