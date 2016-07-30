@@ -82,9 +82,9 @@ reg [VAL_SIZE-1:0] fetched_val, get_val;
 reg                judge;
 /* Hash Table & Data Store */
 reg [KEY_SIZE-1:0] KEY [RAM_SIZE-1:0];
-reg [KEY_SIZE-1:0] VAL [RAM_SIZE-1:0];
+reg [VAL_SIZE-1:0] VAL [RAM_SIZE-1:0];
 
-wire [1:0] fetched_flag = fetched_val[23:21];
+wire [1:0] fetched_flag = fetched_val[22:21];
 
 always @ (posedge clk)
 	if (rst) begin
@@ -155,7 +155,7 @@ always @ (posedge clk)
 				state <= IDLE;
 			UPDATE: begin
 				KEY[hash] <= in_key;
-				VAL[hash] <= {in_op, 4'd0, sys_cnt[15:0]};
+				VAL[hash] <= {in_op, 4'd0, sys_cnt[15:0], 8'd0};
 				state <= IDLE;
 			end
 			default : state <= IDLE;
