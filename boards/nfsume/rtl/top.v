@@ -101,9 +101,9 @@ eth_top eth0_top (
 	.ETH0_TX_DISABLE    (ETH0_TX_DISABLE) 
 );
 
-db_top (
+db_top u_db_top (
 	.clk              (db_clk),
-	.rst              (rst), 
+	.rst              (sys_rst), 
 	/* Network Interface */
 	.in_key           (in_key   ),
 	.in_flag          (in_flag  ),
