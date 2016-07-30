@@ -285,15 +285,15 @@ always @ (posedge clk156) begin
 				2: rx_ip_proto <= s_axis_tdata[63:56];
 				3: begin
 					rx_src_ip <= {s_axis_tdata[23:16],
-					s_axis_tdata[31:24],
-					s_axis_tdata[39:32],
-					s_axis_tdata[47:40]};
-					rx_dst_ip <= {s_axis_tdata[55:48],
-					              s_axis_tdata[63:56]};
+					              s_axis_tdata[31:24],
+					              s_axis_tdata[39:32],
+					              s_axis_tdata[47:40]};
+					rx_dst_ip[31:16] <= {s_axis_tdata[55:48],
+					                     s_axis_tdata[63:56]};
 				end
 				4: begin
-					rx_dst_ip <= {s_axis_tdata[ 7: 0],
-                                  s_axis_tdata[15: 8]};
+					rx_dst_ip[15: 0] <= {s_axis_tdata[ 7: 0],
+                                         s_axis_tdata[15: 8]};
 					if (rx_ftype == ETH_FTYPE_IP && 
 							rx_ip_proto == IP_PROTO_UDP) begin
 							rx_src_uport <= {s_axis_tdata[23:16], 
@@ -445,7 +445,7 @@ ila_0 inst_ila (
 		in_key    , //96
 		in_valid  , //1
 		rx_cnt    , // 10
-		filter_mode, // 1
+		filter_block, // 1
 		suspect_mode,// 1
 		db_op // 4
 	}) // input wire [75:0] probe0
