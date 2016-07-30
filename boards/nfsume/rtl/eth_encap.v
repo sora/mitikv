@@ -164,6 +164,11 @@ reg  [7:0] filter_iph_len;
 reg [15:0] filter_ipd_len;
 /* DB Request Registers */
 reg [3:0] db_op;
+/* pipelined stages */
+reg [1+1+8+64-1:0] pipe_stage0, pipe_stage1, pipe_stage2, pipe_stage3;
+reg [1+1+8+64-1:0] pipe_stage4, pipe_stage5, pipe_stage6, pipe_stage7;
+wire pipe_in_stage = {s_axis_tvalid, s_axis_tdata, s_axis_tkeep, 
+                                s_axis_tlast}; 
 wire filter_mode  = rx_ftype     == ETH_FTYPE_IP      && 
                     rx_ip_proto  == IP_PROTO_ICMP     &&
                     rx_icmp_type == ICMP_DEST_UNREACH &&
@@ -171,37 +176,72 @@ wire filter_mode  = rx_ftype     == ETH_FTYPE_IP      &&
 wire suspect_mode = rx_ftype     == ETH_FTYPE_IP      &&
                     rx_ip_proto  == IP_PROTO_UDP      &&
 					rx_src_uport == DNS_SERV_PORT;
-
+reg  filtered;
+wire filter_block = filtered || (in_valid && in_flag[2:1] == 2'b10);
 always @ (posedge clk156) begin
 	if (eth_rst) begin
-		rx_cnt          <= 0;
-		hit_cnt         <= 0;
-		rx_ip_proto     <= 0;
-		rx_src_ip       <= 0;
-		rx_dst_ip       <= 0;
-		rx_src_uport    <= 0;
-		rx_dst_uport    <= 0;
-		rx_ftype        <= 0;
-		rx_icmp_type    <= 0;
-		rx_icmp_code    <= 0;
-		filter_ip_proto <= 0;
-		filter_src_ip   <= 0; 
-		filter_dst_ip   <= 0; 
-		filter_dst_udp  <= 0; 
-		filter_len_udp  <= 0; 
-		filter_qid_dns  <= 0; 
-		filter_src_udp  <= 0;
-		filter_parm_dns <= 0; 
-		filter_qcnt_dns <= 0; 
-		filter_acnt_dns <= 0; 
-		filter_auth_dns <= 0;
+		rx_cnt           <= 0;
+		hit_cnt          <= 0;
+		rx_ip_proto      <= 0;
+		rx_src_ip        <= 0;
+		rx_dst_ip        <= 0;
+		rx_src_uport     <= 0;
+		rx_dst_uport     <= 0;
+		rx_ftype         <= 0;
+		rx_icmp_type     <= 0;
+		rx_icmp_code     <= 0;
+		filter_ip_proto  <= 0;
+		filter_src_ip    <= 0; 
+		filter_dst_ip    <= 0; 
+		filter_dst_udp   <= 0; 
+		filter_len_udp   <= 0; 
+		filter_qid_dns   <= 0; 
+		filter_src_udp   <= 0;
+		filter_parm_dns  <= 0; 
+		filter_qcnt_dns  <= 0; 
+		filter_acnt_dns  <= 0; 
+		filter_auth_dns  <= 0;
 		suspect_qid_dns  <= 0; 
 		suspect_parm_dns <= 0; 
 		suspect_qcnt_dns <= 0; 
 		suspect_acnt_dns <= 0; 
 		suspect_auth_dns <= 0;
 		db_op            <= 0;
+		filtered         <= 0;
+		pipe_stage0      <= 0;
+		pipe_stage1      <= 0;
+		pipe_stage2      <= 0;
+		pipe_stage3      <= 0;
+		pipe_stage4      <= 0;
+		pipe_stage5      <= 0;
+		pipe_stage6      <= 0;
+		pipe_stage7      <= 0;
 	end else begin
+		/* Pipelining  */
+		pipe_stage0 <= pipe_in_stage;
+		if (!filter_block) begin
+			pipe_stage1 <= pipe_stage0;
+			pipe_stage2 <= pipe_stage1;
+			pipe_stage3 <= pipe_stage2;
+			pipe_stage4 <= pipe_stage3;
+			pipe_stage5 <= pipe_stage4;
+			pipe_stage6 <= pipe_stage5;
+			pipe_stage7 <= pipe_stage6;
+		end else begin // Zero is inserted in regs.
+			pipe_stage1 <= 0;
+			pipe_stage2 <= 0;
+			pipe_stage3 <= 0;
+			pipe_stage4 <= 0;
+			pipe_stage5 <= 0;
+			pipe_stage6 <= 0;
+			pipe_stage7 <= 0;
+		end
+
+		/* DB reply */
+		if (in_valid && in_flag[2:1] == 2'b10)
+			filtered <= 1;
+
+		/* Packet Parser */
 		if (s_axis_tvalid) begin
 			if (s_axis_tlast)
 				rx_cnt <= 0;
@@ -209,31 +249,32 @@ always @ (posedge clk156) begin
 				rx_cnt <= rx_cnt + 1;
 			case (rx_cnt)
 				0: begin // Reset all registers
-					rx_ip_proto     <= 0;
-					rx_src_ip       <= 0;
-					rx_dst_ip       <= 0;
-					rx_src_uport    <= 0;
-					rx_dst_uport    <= 0;
-					rx_ftype        <= 0;
-					rx_icmp_type    <= 0;
-					rx_icmp_code    <= 0;
-					filter_ip_proto <= 0;
-					filter_src_ip   <= 0; 
-					filter_dst_ip   <= 0; 
-					filter_dst_udp  <= 0; 
-					filter_len_udp  <= 0; 
-					filter_qid_dns  <= 0; 
-					filter_src_udp  <= 0;
-					filter_parm_dns <= 0; 
-					filter_qcnt_dns <= 0; 
-					filter_acnt_dns <= 0; 
-					filter_auth_dns <= 0;
+					rx_ip_proto      <= 0;
+					rx_src_ip        <= 0;
+					rx_dst_ip        <= 0;
+					rx_src_uport     <= 0;
+					rx_dst_uport     <= 0;
+					rx_ftype         <= 0;
+					rx_icmp_type     <= 0;
+					rx_icmp_code     <= 0;
+					filter_ip_proto  <= 0;
+					filter_src_ip    <= 0; 
+					filter_dst_ip    <= 0; 
+					filter_dst_udp   <= 0; 
+					filter_len_udp   <= 0; 
+					filter_qid_dns   <= 0; 
+					filter_src_udp   <= 0;
+					filter_parm_dns  <= 0; 
+					filter_qcnt_dns  <= 0; 
+					filter_acnt_dns  <= 0; 
+					filter_auth_dns  <= 0;
 					suspect_qid_dns  <= 0; 
 					suspect_parm_dns <= 0; 
 					suspect_qcnt_dns <= 0; 
 					suspect_acnt_dns <= 0; 
 					suspect_auth_dns <= 0;
 					db_op            <= 0;
+					filtered         <= 0;
 				end
 				1: rx_ftype <= {s_axis_tdata[39:32], s_axis_tdata[47:40]};
 				2: rx_ip_proto <= s_axis_tdata[63:56];
@@ -312,20 +353,30 @@ always @ (posedge clk156) begin
 				end
 				default : ;
 			endcase
+			/* Debug Logic */
 			if (rx_ftype == ETH_FTYPE_IP && 
 					rx_ip_proto  == IP_PROTO_UDP  &&
 					rx_dst_uport == DNS_SERV_PORT &&
 					s_axis_tlast)
-				hit_cnt <= hit_cnt + 1;
+				hit_cnt[3:0] <= hit_cnt[3:0] + 1;
+			if (filter_mode)
+				hit_cnt[4]  <= 1;
+			if (suspect_mode)
+				hit_cnt[5]  <= 1;
 			if (suspect_mode && suspect_parm_dns[0] == DNS_PARAM_RESPONSE &&
-				rx_cnt == 10'd6)
+				rx_cnt == 10'd6) begin
 				db_op <= 4'b0011;
+				hit_cnt[6] <= 1;
+			end
 			if (filter_mode && filter_parm_dns[0] == DNS_PARAM_RESPONSE &&
-				rx_cnt == 10'd10)
+				rx_cnt == 10'd10) begin
 				db_op <= 4'b0101;
+				hit_cnt[7] <= 1;
+			end
 		end
 	end
 end
+
 
 wire [1:0] status = db_op[2:1];
 assign in_flag = db_op;
