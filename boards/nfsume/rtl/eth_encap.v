@@ -175,9 +175,10 @@ wire filter_mode  = rx_ftype     == ETH_FTYPE_IP      &&
                     rx_icmp_code == ICMP_PORT_UNREACH;
 wire suspect_mode = rx_ftype     == ETH_FTYPE_IP      &&
                     rx_ip_proto  == IP_PROTO_UDP      &&
-					rx_src_uport == DNS_SERV_PORT;
+                    rx_src_uport == DNS_SERV_PORT;
 reg  filtered;
 wire filter_block = filtered || (in_valid && in_flag[2:1] == 2'b10);
+
 always @ (posedge clk156) begin
 	if (eth_rst) begin
 		rx_cnt           <= 0;
@@ -280,11 +281,11 @@ always @ (posedge clk156) begin
 				2: rx_ip_proto <= s_axis_tdata[63:56];
 				3: begin
 					rx_src_ip <= {s_axis_tdata[23:16],
-                                  s_axis_tdata[31:24],
-                                  s_axis_tdata[39:32],
-                                  s_axis_tdata[47:40]};
+					s_axis_tdata[31:24],
+					s_axis_tdata[39:32],
+					s_axis_tdata[47:40]};
 					rx_dst_ip <= {s_axis_tdata[55:48],
-                                  s_axis_tdata[63:56]};
+					              s_axis_tdata[63:56]};
 				end
 				4: begin
 					rx_dst_ip <= {s_axis_tdata[ 7: 0],
@@ -310,17 +311,17 @@ always @ (posedge clk156) begin
 					                    s_axis_tdata[31:24]};
 					suspect_parm_dns <= {s_axis_tdata[39:32],
                                          s_axis_tdata[47:40]};
-                    suspect_qcnt_dns <= {s_axis_tdata[55:48],
-                                         s_axis_tdata[63:56]};
+					suspect_qcnt_dns <= {s_axis_tdata[55:48],
+					                     s_axis_tdata[63:56]};
 				end                          
 				6: if (filter_mode) begin
 					filter_ip_proto      <= s_axis_tdata[32:23];
 					filter_src_ip[31:16] <= {s_axis_tdata[55:48],
 					                         s_axis_tdata[63:56]};
 				end else if (suspect_mode) begin
-                    suspect_acnt_dns <= {s_axis_tdata[ 7: 0],
-                                         s_axis_tdata[15: 8]};
-                    suspect_auth_dns <= {s_axis_tdata[23:16],
+					suspect_acnt_dns <= {s_axis_tdata[ 7: 0],
+					                     s_axis_tdata[15: 8]};
+					suspect_auth_dns <= {s_axis_tdata[23:16],
 					                     s_axis_tdata[31:24]};
 				end
 				7: if (filter_mode) begin
