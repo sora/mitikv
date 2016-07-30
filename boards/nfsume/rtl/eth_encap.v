@@ -419,39 +419,39 @@ axis_data_fifo_0 u_axis_data_fifo (
   .axis_wr_data_count  (),  // output wire [31 : 0] axis_wr_data_count
   .axis_rd_data_count  ()  // output wire [31 : 0] axis_rd_data_count
 );
-`ifdef SIMULATION_ILA
+//`ifdef SIMULATION_ILA
 /*
  *  ILA core instance
  */
 
-reg        tready_ila;
-reg        tvalid_ila;
-reg [63:0] tdata_ila;
-reg [ 7:0] tkeep_ila;
-reg        tlast_ila;
-reg        tuser_ila;
-always @ (posedge clk156) begin
-	tready_ila <= m_axis_tready;
-	tvalid_ila <= s_axis_tvalid;
-	tdata_ila <= s_axis_tdata;
-	tkeep_ila <= s_axis_tkeep;
-	tlast_ila <= s_axis_tlast;
-	tuser_ila <= s_axis_tuser;
-end
+//reg        tready_ila;
+//reg        tvalid_ila;
+//reg [63:0] tdata_ila;
+//reg [ 7:0] tkeep_ila;
+//reg        tlast_ila;
+//reg        tuser_ila;
+//always @ (posedge clk156) begin
+//	tready_ila <= m_axis_tready;
+//	tvalid_ila <= s_axis_tvalid;
+//	tdata_ila <= s_axis_tdata;
+//	tkeep_ila <= s_axis_tkeep;
+//	tlast_ila <= s_axis_tlast;
+//	tuser_ila <= s_axis_tuser;
+//end
 
 ila_1 inst_ila (
 	.clk     (clk156), // input wire clk
 	.probe0  ({
-		tready_ila,
-		tvalid_ila,
-		tdata_ila ,
-		tkeep_ila ,
-		tlast_ila ,
-		tuser_ila 
+		in_key    ,
+		in_valid  ,
+		rx_cnt    ,
+		filter_mode,
+		suspect_mode,
+		db_op
 	}) // input wire [75:0] probe0
 );
 
-`endif /* SIMULATION_ILA */
+//`endif /* SIMULATION_ILA */
 
 endmodule
 
