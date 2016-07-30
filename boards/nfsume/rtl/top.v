@@ -62,12 +62,23 @@ always @(posedge clk200)
 /*
  *  Ethernet Top Instance
  */
+wire [KEY_SIZE-1:0] in_key;
+wire [3:0]          in_flag, out_flag;
+wire                in_valid, out_valid;
 
 eth_top eth0_top (
 	.clk100             (clk100),
 	.sys_rst            (sys_rst),
 	.debug              (LED),
+	
+	/* KVS Interface */
+	.in_key           (in_key   ),
+	.in_flag          (in_flag  ),
+	.in_vaild         (in_vaild ),
+	.out_valid        (out_valid),
+	.out_flag         (out_flag ),
 
+	/* XGMII */
 	.SFP_CLK_P          (SFP_CLK_P),
 	.SFP_CLK_N          (SFP_CLK_N),
 	.SFP_REC_CLK_P      (SFP_REC_CLK_P),
@@ -87,6 +98,22 @@ eth_top eth0_top (
 	.ETH0_RX_LOS        (ETH0_RX_LOS   ),
 	.ETH0_TX_DISABLE    (ETH0_TX_DISABLE) 
 );
+
+db_top (
+	.clk,
+	.rst, 
+	/* Network Interface */
+	.in_key           (in_key   ),
+	.in_flag          (in_flag  ),
+	.in_vaild         (in_vaild ),
+	.out_valid        (out_valid),
+	.out_flag         (out_flag ),
+
+	/* DRAM interace */ 
+	//input wire    dram_wr_strb,
+	//input wire    dram_wr_data, 
+);
+
 
 /*
  * Debug : Clock

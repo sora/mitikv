@@ -1,11 +1,19 @@
 module eth_top #(
 	parameter PL_LINK_CAP_MAX_LINK_WIDTH = 2,
 	parameter C_DATA_WIDTH               = 64,
-	parameter KEEP_WIDTH                 = C_DATA_WIDTH / 32
+	parameter KEEP_WIDTH                 = C_DATA_WIDTH / 32,
+	parameter KEY_SIZE                   = 96,
+	parameter VAL_SIZE                   = 32
 )(
 	input  wire clk100,
 	input  wire sys_rst,
 	output wire [7:0] debug,
+
+	output wire [KEY_SIZE-1:0] in_key,
+	output wire [3:0]          in_flag,
+	output wire                in_vaild,
+	input  wire                out_valid,
+	input  wire [3:0]          out_flag,
 
 	input  wire SFP_CLK_P,
 	input  wire SFP_CLK_N,
@@ -94,6 +102,12 @@ eth_encap eth_encap0 (
 	.clk156           (clk156),
 	.eth_rst          (eth_rst),
 	.debug            (eth_debug),
+
+	.in_key           (in_key   ),
+	.in_flag          (in_flag  ),
+	.in_vaild         (in_vaild ),
+	.out_valid        (out_valid),
+	.out_flag         (out_flag ),
 
 	.s_axis_tvalid    (s_axis_tvalid),
 	.s_axis_tdata     (s_axis_tdata),
