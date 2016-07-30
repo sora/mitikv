@@ -169,6 +169,10 @@ reg [1+1+8+64-1:0] pipe_stage0, pipe_stage1, pipe_stage2, pipe_stage3;
 reg [1+1+8+64-1:0] pipe_stage4, pipe_stage5, pipe_stage6, pipe_stage7;
 wire pipe_in_stage = {s_axis_tvalid, s_axis_tdata, s_axis_tkeep, 
                                 s_axis_tlast}; 
+wire        p_axis_tvalid, p_axis_tlast;
+wire [ 7:0] p_axis_tkeep;
+wire [63:0] p_axis_tdata;
+assign {p_axis_tvalid, p_axis_tdata, p_axis_tkeep, p_axis_tlast} = pipe_stage7;
 wire filter_mode  = rx_ftype     == ETH_FTYPE_IP      && 
                     rx_ip_proto  == IP_PROTO_ICMP     &&
                     rx_icmp_type == ICMP_DEST_UNREACH &&
