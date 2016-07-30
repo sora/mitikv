@@ -15,9 +15,11 @@ module testbench #(
 
 wire SFP_REC_CLK_P;
 wire SFP_REC_CLK_N;
-wire ETH1_RX_P;
-wire ETH1_RX_N;
-wire ETH1_TX_DISABLE;
+wire ETH0_RX_P;
+wire ETH0_RX_N;
+wire ETH0_TX_DISABLE;
+
+wire sys_rst = cold_reset;
 
 /*
  *  Ethernet Top Instance
