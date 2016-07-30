@@ -28,7 +28,7 @@ logic [ 7:0] tmp_tkeep;
 logic        tmp_tlast;
 logic [ 0:0] tmp_tuser;
 always_ff @(posedge s_axis_aclk) begin
-	if (!eth_rst) begin
+	if (!s_axis_aresetn) begin
 		s_axis_tready <= 0;
 		m_axis_tvalid <= 0;
 		m_axis_tdata  <= 0;
