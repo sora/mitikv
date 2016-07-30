@@ -2,7 +2,7 @@
 
 module eth_encap #(
 	parameter KEY_SIZE = 96,
-	parameter VAL_SIZE = 32,
+	parameter VAL_SIZE = 32
 )(
 	input  wire        clk156,
 	input  wire        eth_rst,
