@@ -95,10 +95,12 @@ always @ (posedge clk)
 		out_valid   <=    0;
 		out_flag    <=    0;
 
+`ifndef SIMULATION
 		for (i = 0; i < RAM_SIZE; i = i + 1) begin
 			KEY[i] <= 0;
 			VAL[i] <= 0;
 		end
+`endif
 	end else begin
 		case (state)
 			IDLE  : begin
