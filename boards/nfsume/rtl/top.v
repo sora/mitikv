@@ -107,7 +107,7 @@ db_top u_db_top (
 	/* Network Interface */
 	.in_key           (in_key   ),
 	.in_flag          (in_flag  ),
-	.in_vaild         (in_vaild ),
+	.in_valid         (in_valid ),
 	.out_valid        (out_valid),
 	.out_flag         (out_flag )
 
