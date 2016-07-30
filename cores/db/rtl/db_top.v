@@ -1,4 +1,7 @@
-module db_top (
+module db_top #(
+	parameter KEY_SIZE = 96,
+	parameter VAL_SIZE = 32
+)(
 	input wire    clk,
 	input wire    rst, 
 	/* Network Interface */
@@ -6,7 +9,7 @@ module db_top (
 	output wire [3:0]          in_flag,
 	output wire                in_vaild,
 	input  wire                out_valid,
-	input  wire [3:0]          out_fla,
+	input  wire [3:0]          out_flag
 
 	/* DRAM interace */ 
 	//input wire    dram_wr_strb,
@@ -83,25 +86,24 @@ db_cont #(
 	.dram_rd_valid()
 );
 
-always 
 
 /*
  * DRAM PHY Controller
  */
-dram_phy u_dram_phy #(
-	RAM_SIZE_KB  (1),
-	RAM_ADDR     (22),
-	RAM_DWIDTH   (32)
-)(
-	.clk         (clk),
-	.rst         (rst),
-
-	.wr_en       (),
-	.wr_din      (),
-	.addr        (),
-	.rd_en       (),
-	.rd_dout     (),
-	.rd_valid    ()
-);
-
+//dram_phy u_dram_phy #(
+//	RAM_SIZE_KB  (1),
+//	RAM_ADDR     (22),
+//	RAM_DWIDTH   (32)
+//)(
+//	.clk         (clk),
+//	.rst         (rst),
+//
+//	.wr_en       (),
+//	.wr_din      (),
+//	.addr        (),
+//	.rd_en       (),
+//	.rd_dout     (),
+//	.rd_valid    ()
+//);
+//
 endmodule
