@@ -66,7 +66,7 @@ localparam KEY_SIZE = 96;
 wire [KEY_SIZE-1:0] in_key;
 wire [3:0]          in_flag, out_flag;
 wire                in_valid, out_valid;
-
+wire                db_clk;
 eth_top eth0_top (
 	.clk100             (clk100),
 	.sys_rst            (sys_rst),
