@@ -72,6 +72,7 @@ eth_top eth0_top (
 	.debug              (LED),
 	
 	/* KVS Interface */
+	.db_clk           (db_clk),
 	.in_key           (in_key   ),
 	.in_flag          (in_flag  ),
 	.in_vaild         (in_vaild ),
@@ -100,8 +101,8 @@ eth_top eth0_top (
 );
 
 db_top (
-	.clk,
-	.rst, 
+	.clk              (db_clk),
+	.rst              (rst), 
 	/* Network Interface */
 	.in_key           (in_key   ),
 	.in_flag          (in_flag  ),

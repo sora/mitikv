@@ -9,6 +9,7 @@ module eth_top #(
 	input  wire sys_rst,
 	output wire [7:0] debug,
 
+	output wire                db_clk,
 	output wire [KEY_SIZE-1:0] in_key,
 	output wire [3:0]          in_flag,
 	output wire                in_vaild,
@@ -39,6 +40,7 @@ module eth_top #(
  * Ethernet Clock Domain : Clocking
  */
 wire clk156;
+assign db_clk = clk156;
 sfp_refclk_init sfp_refclk_init0 (
 	.CLK               (clk100),
 	.RST               (sys_rst),
